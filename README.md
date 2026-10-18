@@ -1,67 +1,69 @@
-Real Estate Price Prediction with Machine Learning
+# Real-Estate Listing Amenity Extraction
 
-This repository implements a machine learning pipeline to predict real estate prices based on a variety of features (e.g. location, size, amenities). The core work is performed in a Jupyter notebook, supported by a Python script for model training / inference.
+Recovering missing amenity information from French real-estate listings by reading their free-text
+descriptions.
 
-🧾 Project Summary
+In the scraped dataset (33,691 listings, 26 fields), most structured fields are empty: over 560,000 values
+are missing. The free-text description, however, is always filled in and often mentions what the structured
+fields leave out ("climatisation dans toutes les pièces", "place de parking"). This project fills the
+air-conditioning, parking and bathroom fields from the descriptions so the data can feed a price model.
 
-Objective: Predict housing / real estate prices using machine learning models
+## How it works
 
-Approach:
+1. Split each description into sentences.
+2. Look for amenity keywords as whole words:
 
-Exploratory Data Analysis (EDA)
+   | Field | Keywords |
+   |---|---|
+   | `climatisation` | climatisation, climatiseur, ventilation |
+   | `fonds` (parking) | parking |
+   | `salle_de_bain` | bain |
 
-Data preprocessing (cleaning, feature engineering, encoding)
+3. Copy the matching sentence into the empty field, keeping the original wording as evidence.
 
-Model training (e.g. linear models, tree models)
+The exploration notebook profiles the missing values and also experiments with spaCy's French model
+(`fr_core_news_md`): part-of-speech filtering and TextRank keyword extraction on the descriptions.
 
-Model evaluation (metrics like RMSE, MAE, R²)
+## Usage
 
-Inference / deployment via Script.py
+```bash
+git clone https://github.com/houcem24/real-estate-listing-nlp.git
+cd real-estate-listing-nlp
+pip install pandas
+python extract_amenities.py listings.csv -o listings_enriched.csv
+```
 
-📁 Repository Structure
-.
-├── Notebook.ipynb        # Main Jupyter notebook (EDA, modeling, results)
-├── Script.py             # Script for training / inference
-├── README.md             # Project overview & instructions
-├── requirements.txt      # Python dependencies
+The script prints how many rows of each field were filled before and after. The input CSV needs a `description` column plus the three amenity
+columns. Pass `--overwrite` to replace existing values as well as empty ones.
 
-🔧 Installation & Setup
+For the notebook:
 
-Clone the repository:
-
-git clone https://github.com/houcem24/Machine-Learning-Project-Predicting-prices-in-the-Real-Estate-Market.git
-cd Machine-Learning-Project-Predicting-prices-in-the-Real-Estate-Market
-
-
-Create a virtual environment (optional but recommended):
-
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-
-Install the dependencies:
-
+```bash
 pip install -r requirements.txt
+python -m spacy download fr_core_news_md
+jupyter notebook amenity_extraction_exploration.ipynb
+```
 
-🚀 Usage
-Jupyter Notebook
+The scraped listing data is not included in this repository.
 
-Open and run Notebook.ipynb step by step to explore data, build models, and visualize results.
+## Repository structure
 
-Script for Training / Prediction
+```
+├── extract_amenities.py                  # Command-line tool
+├── amenity_extraction_exploration.ipynb  # Exploration with spaCy and TextRank (comments in French)
+└── requirements.txt
+```
 
-Use Script.py to train models or make price predictions from new input data. Adjust paths or parameters inside as needed.
+## Limitations and next steps
 
-📊 Evaluation & Results
+- Keyword matching misses synonyms and negations ("pas de parking" is counted as a parking mention).
+- A next step would be a small classifier or spaCy `Matcher` patterns that also return a yes/no value, so the
+  filled fields can go straight into a price-prediction model.
 
-Common regression metrics such as RMSE, MAE, and R² are used to evaluate model performance
+## Context
 
-Visualizations (residual plots, feature importance, correlation heatmaps) help interpret results
+NLP project at ESPRIT (2023).
 
-⚠️ Notes & Tips
+## License
 
-Make sure your dataset file paths and names match what’s referenced in the notebook and script
-
-When applying to new data, ensure features are preprocessed exactly as in the training pipeline
-
-You can extend the model set, perform hyperparameter tuning, or try ensemble methods
+[MIT](LICENSE)

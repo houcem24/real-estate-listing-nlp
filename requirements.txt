@@ -4,5 +4,5 @@ pandas>=1.5
 # Exploration notebook
 spacy>=3.5
 pytextrank>=3.2
-visualise-spacy-tree>=0.0.6
+
 jupyter
